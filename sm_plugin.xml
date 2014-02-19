@@ -1,0 +1,6 @@
+<library path="lib/libsocial_state_machine">
+  <class type="social_state_machine::SocialStateMachine" base_class_type="move_base::StateMachine">
+    <description>
+    </description>
+  </class>
+</library>
