@@ -14,7 +14,7 @@ namespace social_state_machine {
       virtual void initialize(tf::TransformListener* tf, move_base::GlobalNavigator* planner, move_base::LocalNavigator* controller);
 
       virtual void reset();
-      virtual std::string executeCycle();
+      virtual void executeCycle(int* status, std::string* message);
 
     private:
 

@@ -35,9 +35,10 @@ void SocialStateMachine::reset()
 {
 }
 
-std::string SocialStateMachine::executeCycle()
+void SocialStateMachine::executeCycle(int* status, std::string* message)
 {
-    return "";
+    *status = 0;
+    
 }
 
 };
