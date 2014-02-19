@@ -1,0 +1,17 @@
+<package>
+  <description brief="social_state_machine">
+
+     social_state_machine
+
+  </description>
+  <author>David!!</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/social_state_machine</url>
+  <depend package="roscpp"/>
+  <depend package="move_base"/>
+  <depend package="pluginlib"/>
+
+</package>
+
+
