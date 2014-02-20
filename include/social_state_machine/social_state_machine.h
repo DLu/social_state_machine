@@ -28,14 +28,17 @@ namespace social_state_machine {
       void advance();
       virtual void executeCycle(int* status, std::string* message);
       
-      
     private:
-    void lookdown(){}
-    void lookup(){}
-    void lookaround(){}
-    void spineup(){}
-    void lookatpath(){}
-    void spinedown(){}
+    void lookdown();
+    void lookup();
+    void lookaround();
+    void spineup();
+    void lookatpath();
+    void spinedown();
+
+    void startHeadAction(){ startJointAction(true); }
+    void startSpineAction(){ startJointAction(false); }    
+    void startJointAction(bool head);
     
     double end_distance_;
 

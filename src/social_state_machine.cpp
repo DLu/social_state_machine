@@ -3,6 +3,30 @@
 
 PLUGINLIB_EXPORT_CLASS(social_state_machine::SocialStateMachine, move_base::StateMachine)
 
+void clear(control_msgs::JointTrajectoryGoal* goal)
+{
+    goal->trajectory.points.clear();
+}
+
+void add_point(control_msgs::JointTrajectoryGoal* goal, double a, double b, double d)
+{
+    trajectory_msgs::JointTrajectoryPoint p;
+    p.positions.push_back(a);
+    p.positions.push_back(b);
+    p.time_from_start = ros::Duration(d);
+    goal->trajectory.points.push_back(p);
+}
+
+void add_point(control_msgs::JointTrajectoryGoal* goal, double a, double d)
+{
+    trajectory_msgs::JointTrajectoryPoint p;
+    p.positions.push_back(a);
+    p.time_from_start = ros::Duration(d);
+    goal->trajectory.points.push_back(p);
+}
+
+
+
 namespace social_state_machine
 {
 
@@ -34,8 +58,7 @@ void SocialStateMachine::initialize(tf::TransformListener* tf, move_base::Global
     dsrv_->setCallback(cb);
     
     
-    if(false)
-        head_.waitForServer();
+    head_.waitForServer();
     if(enabled_[3])
         spine_.waitForServer();
     
@@ -141,6 +164,56 @@ void SocialStateMachine::executeCycle(int* status, std::string* message)
             return;
         
             
+    }
+}
+
+void SocialStateMachine::lookup()
+{
+    clear(&head_goal_);
+    add_point(&head_goal_, 0, 0, 5);
+    startJointAction(true);
+}
+
+void SocialStateMachine::lookdown()
+{
+    clear(&head_goal_);
+    add_point(&head_goal_, 0, -.4, 5);
+    startJointAction(true);
+
+}
+
+void SocialStateMachine::lookaround(){
+    clear(&head_goal_);
+    add_point(&head_goal_, -1.5, 0, 2);
+    add_point(&head_goal_, 1.5, 0, 5);
+    add_point(&head_goal_, 0, 0, 2);
+    startJointAction(true);
+}
+
+void SocialStateMachine::lookatpath(){}
+
+void SocialStateMachine::spineup()
+{
+    clear(&spine_goal_);
+    add_point(&spine_goal_, 0.25, 5);
+    startJointAction(false);
+}
+
+void SocialStateMachine::spinedown(){
+    clear(&spine_goal_);
+    add_point(&spine_goal_, 0, 5);
+    startJointAction(false);
+}
+
+
+void SocialStateMachine::startJointAction(bool head)
+{
+    if(head){
+        head_goal_.trajectory.header.stamp = ros::Time::now();
+        head_.sendGoal(head_goal_);
+    }else{
+        spine_goal_.trajectory.header.stamp = ros::Time::now();
+        spine_.sendGoal(spine_goal_);
     }
 }
 
