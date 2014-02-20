@@ -44,6 +44,7 @@ namespace social_state_machine {
     bool* enabled_;
     
     TrajectoryClient head_, spine_;
+    control_msgs::JointTrajectoryGoal head_goal_, spine_goal_;
 
   dynamic_reconfigure::Server<social_state_machine::SocialStateMachineConfig> *dsrv_;
   void reconfigureCB(social_state_machine::SocialStateMachineConfig &config, uint32_t level);

@@ -11,6 +11,9 @@ SocialStateMachine::SocialStateMachine() :
     head_("/head_traj_controller/joint_trajectory_action"), 
     spine_("/torso_controller/joint_trajectory_action")
 {
+    head_goal_.trajectory.joint_names.push_back("head_pan_joint");
+    head_goal_.trajectory.joint_names.push_back("head_tilt_joint");
+    spine_goal_.trajectory.joint_names.push_back("torso_lift_joint");
 }
 
 SocialStateMachine::~SocialStateMachine()
@@ -59,7 +62,6 @@ void SocialStateMachine::reconfigureCB(social_state_machine::SocialStateMachineC
 void SocialStateMachine::reset()
 {
     state_ = S_PLANNING;
-    ROS_INFO("%d", state_);
 }
 
 void SocialStateMachine::advance()
@@ -70,7 +72,6 @@ void SocialStateMachine::advance()
             break;
         }
     }
-    ROS_INFO("%d", state_);
 }
 
 void SocialStateMachine::executeCycle(int* status, std::string* message)
