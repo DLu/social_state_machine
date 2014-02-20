@@ -11,6 +11,9 @@
   <depend package="roscpp"/>
   <depend package="move_base"/>
   <depend package="pluginlib"/>
+  <depend package="actionlib"/>
+  <depend package="trajectory_msgs"/>
+  <depend package="control_msgs"/>
   <export>
       <move_base plugin="${prefix}/sm_plugin.xml" />
   </export>
