@@ -40,8 +40,11 @@ namespace social_state_machine {
     void startSpineAction(){ startJointAction(false); }    
     void startJointAction(bool head);
     
-    double end_distance_;
-
+    bool actionsComplete();
+    
+    double end_distance_, side_point_, down_angle_, base_time_;
+    double up_spine_, down_spine_;
+    
 
     int state_;
     bool* enabled_;

@@ -80,6 +80,11 @@ void SocialStateMachine::reconfigureCB(social_state_machine::SocialStateMachineC
     enabled_[10]= true;                                 // S_AT_GOAL
     
     end_distance_ = config.end_distance;
+    side_point_ = config.side_point;
+    down_angle_ = config.look_down_angle;
+    base_time_ = config.base_time;
+    up_spine_ = config.up_spine;
+    down_spine_ = config.down_spine;
 }
 
 void SocialStateMachine::reset()
@@ -89,6 +94,9 @@ void SocialStateMachine::reset()
 
 void SocialStateMachine::advance()
 {
+    head_.cancelGoal();
+    spine_.cancelGoal();
+    
     while(state_ < NUM_STATES - 1){
         state_ = state_ + 1;
         if( enabled_[state_] ){
@@ -122,7 +130,7 @@ void SocialStateMachine::executeCycle(int* status, std::string* message)
             }
             break;
         default:
-            if(true/*actions_complete*/){
+            if(actionsComplete()){
                 advance();
             }else{
                 return;            
@@ -167,26 +175,31 @@ void SocialStateMachine::executeCycle(int* status, std::string* message)
     }
 }
 
+bool SocialStateMachine::actionsComplete()
+{
+    return head_.getState().isDone() && spine_.getState().isDone();
+}
+
 void SocialStateMachine::lookup()
 {
     clear(&head_goal_);
-    add_point(&head_goal_, 0, 0, 5);
+    add_point(&head_goal_, 0, 0, base_time_);
     startJointAction(true);
 }
 
 void SocialStateMachine::lookdown()
 {
     clear(&head_goal_);
-    add_point(&head_goal_, 0, -.4, 5);
+    add_point(&head_goal_, 0, down_angle_, base_time_);
     startJointAction(true);
 
 }
 
 void SocialStateMachine::lookaround(){
     clear(&head_goal_);
-    add_point(&head_goal_, -1.5, 0, 2);
-    add_point(&head_goal_, 1.5, 0, 5);
-    add_point(&head_goal_, 0, 0, 2);
+    add_point(&head_goal_, -side_point_, 0, base_time_/2);
+    add_point(&head_goal_, side_point_, 0, base_time_);
+    add_point(&head_goal_, 0, 0, base_time_/2);
     startJointAction(true);
 }
 
@@ -195,13 +208,13 @@ void SocialStateMachine::lookatpath(){}
 void SocialStateMachine::spineup()
 {
     clear(&spine_goal_);
-    add_point(&spine_goal_, 0.25, 5);
+    add_point(&spine_goal_, up_spine_, base_time_);
     startJointAction(false);
 }
 
 void SocialStateMachine::spinedown(){
     clear(&spine_goal_);
-    add_point(&spine_goal_, 0, 5);
+    add_point(&spine_goal_, down_spine_, base_time_);
     startJointAction(false);
 }
 
