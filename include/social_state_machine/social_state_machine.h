@@ -7,8 +7,10 @@
 #include <trajectory_msgs/JointTrajectory.h>
 #include <trajectory_msgs/JointTrajectoryPoint.h>
 #include <control_msgs/JointTrajectoryAction.h>
+#include <control_msgs/PointHeadAction.h>
 
 typedef actionlib::SimpleActionClient<control_msgs::JointTrajectoryAction> TrajectoryClient;
+typedef actionlib::SimpleActionClient<control_msgs::PointHeadAction> PointClient;
 
 enum SocialState { S_PLANNING, S_LOOKUP, S_LOOK_AROUND, S_SPINE_UP, S_LOOK_AT_PATH, 
                    S_NORMAL, S_NEAR_END, S_SPINE_DOWN, S_END_LOOK_AROUND, S_END_LOOK_DOWN, 
@@ -49,8 +51,13 @@ namespace social_state_machine {
     int state_;
     bool* enabled_;
     
+    std::vector<geometry_msgs::PoseStamped> plan_;
+    
     TrajectoryClient head_, spine_;
     control_msgs::JointTrajectoryGoal head_goal_, spine_goal_;
+    PointClient point_head_;
+    control_msgs::PointHeadGoal point_goal_;
+    bool* active_;
 
   dynamic_reconfigure::Server<social_state_machine::SocialStateMachineConfig> *dsrv_;
   void reconfigureCB(social_state_machine::SocialStateMachineConfig &config, uint32_t level);

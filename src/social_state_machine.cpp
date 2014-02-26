@@ -33,7 +33,8 @@ namespace social_state_machine
 SocialStateMachine::SocialStateMachine() :
     enabled_(NULL),
     head_("/head_traj_controller/joint_trajectory_action"), 
-    spine_("/torso_controller/joint_trajectory_action")
+    spine_("/torso_controller/joint_trajectory_action"),
+    point_head_("/head_traj_controller/point_head_action")
 {
     head_goal_.trajectory.joint_names.push_back("head_pan_joint");
     head_goal_.trajectory.joint_names.push_back("head_tilt_joint");
@@ -43,6 +44,7 @@ SocialStateMachine::SocialStateMachine() :
 SocialStateMachine::~SocialStateMachine()
 {
     if(enabled_) delete enabled_;
+    if(active_) delete active_;
 }
 
 void SocialStateMachine::initialize(tf::TransformListener* tf, move_base::GlobalNavigator* planner, move_base::LocalNavigator* controller)
@@ -51,7 +53,8 @@ void SocialStateMachine::initialize(tf::TransformListener* tf, move_base::Global
     ros::NodeHandle private_nh("~");
     
     enabled_ = new bool[NUM_STATES];
-
+    active_ = new bool[3];
+    
     //private_nh.param("local_costmap/circumscribed_radius", base_radius_, 0.46);
     dsrv_ = new dynamic_reconfigure::Server<social_state_machine::SocialStateMachineConfig>(ros::NodeHandle("~/social_state_machine"));
     dynamic_reconfigure::Server<social_state_machine::SocialStateMachineConfig>::CallbackType cb = boost::bind(&SocialStateMachine::reconfigureCB, this, _1, _2);
@@ -61,6 +64,10 @@ void SocialStateMachine::initialize(tf::TransformListener* tf, move_base::Global
     head_.waitForServer();
     if(enabled_[3])
         spine_.waitForServer();
+    point_head_.waitForServer();
+    
+    spinedown();
+    lookdown();
     
     
     reset();
@@ -90,12 +97,16 @@ void SocialStateMachine::reconfigureCB(social_state_machine::SocialStateMachineC
 void SocialStateMachine::reset()
 {
     state_ = S_PLANNING;
+    active_[0] = active_[1] = active_[2] = false;
 }
 
 void SocialStateMachine::advance()
 {
-    head_.cancelGoal();
-    spine_.cancelGoal();
+    if(active_[0])    head_.cancelGoal();
+    if(active_[1])    spine_.cancelGoal();
+    if(active_[2])    point_head_.cancelGoal();
+    
+    active_[0] = active_[1] = active_[2] = false;
     
     while(state_ < NUM_STATES - 1){
         state_ = state_ + 1;
@@ -126,6 +137,7 @@ void SocialStateMachine::executeCycle(int* status, std::string* message)
             if(controller_->getState()==FINISHED){
                 advance();
             }else{
+                lookatpath();
                 return;
             }
             break;
@@ -151,10 +163,11 @@ void SocialStateMachine::executeCycle(int* status, std::string* message)
             spineup();
             break;
         case S_LOOK_AT_PATH:
+            plan_ = planner_->getPlan();
             lookatpath();
             break;
         case S_NORMAL:
-            controller_->setGlobalPlan( planner_->getPlan() );
+            controller_->setGlobalPlan( plan_ );
             break;
             
         case S_SPINE_DOWN:
@@ -177,7 +190,7 @@ void SocialStateMachine::executeCycle(int* status, std::string* message)
 
 bool SocialStateMachine::actionsComplete()
 {
-    return head_.getState().isDone() && spine_.getState().isDone();
+    return head_.getState().isDone() && spine_.getState().isDone() && point_head_.getState().isDone();
 }
 
 void SocialStateMachine::lookup()
@@ -203,7 +216,20 @@ void SocialStateMachine::lookaround(){
     startJointAction(true);
 }
 
-void SocialStateMachine::lookatpath(){}
+void SocialStateMachine::lookatpath(){
+    unsigned int i=0;
+    double d = 0.0;
+    
+    while(d<5.0 and i<plan_.size()-1){
+        i += 1;
+        d = 0.0; // CUrrent pose, plan_.get(i)
+    }    
+    
+    point_goal_.target.header = plan_[i].header;
+    point_goal_.target.point = plan_[i].pose.position;
+    active_[2] = true;
+    point_head_.sendGoal(point_goal_);
+}
 
 void SocialStateMachine::spineup()
 {
@@ -222,9 +248,11 @@ void SocialStateMachine::spinedown(){
 void SocialStateMachine::startJointAction(bool head)
 {
     if(head){
+        active_[0] = true;
         head_goal_.trajectory.header.stamp = ros::Time::now();
         head_.sendGoal(head_goal_);
     }else{
+        active_[1] = true;
         spine_goal_.trajectory.header.stamp = ros::Time::now();
         spine_.sendGoal(spine_goal_);
     }
