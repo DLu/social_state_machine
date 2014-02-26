@@ -58,6 +58,7 @@ namespace social_state_machine {
     PointClient point_head_;
     control_msgs::PointHeadGoal point_goal_;
     bool* active_;
+    bool debug_;
 
   dynamic_reconfigure::Server<social_state_machine::SocialStateMachineConfig> *dsrv_;
   void reconfigureCB(social_state_machine::SocialStateMachineConfig &config, uint32_t level);

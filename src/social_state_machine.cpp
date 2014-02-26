@@ -55,7 +55,7 @@ void SocialStateMachine::initialize(tf::TransformListener* tf, move_base::Global
     enabled_ = new bool[NUM_STATES];
     active_ = new bool[3];
     
-    //private_nh.param("local_costmap/circumscribed_radius", base_radius_, 0.46);
+    private_nh.param("debug", debug_, true);
     dsrv_ = new dynamic_reconfigure::Server<social_state_machine::SocialStateMachineConfig>(ros::NodeHandle("~/social_state_machine"));
     dynamic_reconfigure::Server<social_state_machine::SocialStateMachineConfig>::CallbackType cb = boost::bind(&SocialStateMachine::reconfigureCB, this, _1, _2);
     dsrv_->setCallback(cb);
@@ -113,6 +113,10 @@ void SocialStateMachine::advance()
         if( enabled_[state_] ){
             break;
         }
+    }
+    
+    if(debug_){
+        ROS_INFO("Now in state %d", state_);
     }
 }
 
